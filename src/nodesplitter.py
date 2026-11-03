@@ -1,4 +1,5 @@
 from textnode import TextNode, TextType
+from process_md_links import extract_markdown_images, extract_markdown_links
 
 
 def split_nodes_delimiter(
@@ -33,5 +34,43 @@ def split_nodes_delimiter(
             ]:
                 if item.text != "":
                     new_nodes.append(item)
+
+    return new_nodes
+
+
+def split_nodes_image(old_nodes: list[TextNode]) -> list[TextNode]:
+    new_nodes = []
+    for node in old_nodes:
+        text = node.text
+        links = extract_markdown_images(text)
+
+        if len(links) == 0 and len(text) != 0:
+            new_nodes.append(node)
+
+        for alt, address in links:
+            sections = text.split(f"![{alt}]({address})", 1)
+            text = sections[-1]
+            if sections[0] != "":
+                new_nodes.append(TextNode(sections[0], TextType.TEXT))
+            new_nodes.append(TextNode(alt, TextType.IMAGE, address))
+
+    return new_nodes
+
+
+def split_nodes_link(old_nodes: list[TextNode]) -> list[TextNode]:
+    new_nodes = []
+    for node in old_nodes:
+        text = node.text
+        links = extract_markdown_links(text)
+
+        if len(links) == 0 and len(text) != 0:
+            new_nodes.append(node)
+
+        for alt, address in links:
+            sections = text.split(f"[{alt}]({address})", 1)
+            text = sections[-1]
+            if sections[0] != "":
+                new_nodes.append(TextNode(sections[0], TextType.TEXT))
+            new_nodes.append(TextNode(alt, TextType.LINK, address))
 
     return new_nodes
