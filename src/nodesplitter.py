@@ -74,3 +74,15 @@ def split_nodes_link(old_nodes: list[TextNode]) -> list[TextNode]:
             new_nodes.append(TextNode(alt, TextType.LINK, address))
 
     return new_nodes
+
+def text_to_textnodes(text: str) -> list[TextNode]:
+    splitters = {TextType.BOLD: "**", TextType.ITALIC: "_", TextType.CODE: "`", TextType.LINK: "link", TextType.IMAGE: "img"}
+    nodes = [TextNode(text, TextType.TEXT)]
+    for tt, delimiter in splitters.items():
+        if tt == TextType.LINK:
+            nodes = split_nodes_link(nodes)
+        elif tt == TextType.IMAGE:
+            nodes = split_nodes_image(nodes)
+        else:
+            nodes = split_nodes_delimiter(nodes, delimiter, tt)
+    return nodes

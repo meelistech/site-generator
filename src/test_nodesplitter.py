@@ -1,5 +1,5 @@
 import unittest
-from nodesplitter import split_nodes_delimiter, split_nodes_image, split_nodes_link
+from nodesplitter import split_nodes_delimiter, split_nodes_image, split_nodes_link, text_to_textnodes
 from textnode import TextNode, TextType
 
 
@@ -132,6 +132,12 @@ class TestTextNode(unittest.TestCase):
             ],
         )
 
+### Test text to TextNode conversion tests ###
+
+    def test_no_text(self):
+        text = ""
+        nodes = text_to_textnodes(text)
+        self.assertEqual(nodes, [])
 
 if __name__ == "__main__":
     unittest.main()
