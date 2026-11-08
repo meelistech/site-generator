@@ -41,18 +41,32 @@ def split_nodes_delimiter(
 def split_nodes_image(old_nodes: list[TextNode]) -> list[TextNode]:
     new_nodes = []
     for node in old_nodes:
+        if node.text_type != TextType.TEXT:
+            new_nodes.append(node)
+            continue
+
         text = node.text
         links = extract_markdown_images(text)
 
-        if len(links) == 0 and len(text) != 0:
+        if len(links) == 0:
             new_nodes.append(node)
+            continue
 
-        for alt, address in links:
+        while links != []:
+            alt, address = links.pop(0)
             sections = text.split(f"![{alt}]({address})", 1)
-            text = sections[-1]
-            if sections[0] != "":
-                new_nodes.append(TextNode(sections[0], TextType.TEXT))
+            first_part = sections.pop(0)
+            second_part = sections.pop(0)
+
+            if first_part != "":
+                new_nodes.append(TextNode(first_part, TextType.TEXT))
+
             new_nodes.append(TextNode(alt, TextType.IMAGE, address))
+
+            text = second_part
+
+            if len(links) == 0 and text != "":
+                new_nodes.append(TextNode(text, TextType.TEXT))
 
     return new_nodes
 
@@ -60,23 +74,44 @@ def split_nodes_image(old_nodes: list[TextNode]) -> list[TextNode]:
 def split_nodes_link(old_nodes: list[TextNode]) -> list[TextNode]:
     new_nodes = []
     for node in old_nodes:
+        if node.text_type != TextType.TEXT:
+            new_nodes.append(node)
+            continue
+
         text = node.text
         links = extract_markdown_links(text)
 
-        if len(links) == 0 and len(text) != 0:
+        if len(links) == 0:
             new_nodes.append(node)
+            continue
 
-        for alt, address in links:
+        while links != []:
+            alt, address = links.pop(0)
             sections = text.split(f"[{alt}]({address})", 1)
-            text = sections[-1]
-            if sections[0] != "":
-                new_nodes.append(TextNode(sections[0], TextType.TEXT))
+            first_part = sections.pop(0)
+            second_part = sections.pop(0)
+
+            if first_part != "":
+                new_nodes.append(TextNode(first_part, TextType.TEXT))
+
             new_nodes.append(TextNode(alt, TextType.LINK, address))
+
+            text = second_part
+
+            if len(links) == 0 and text != "":
+                new_nodes.append(TextNode(text, TextType.TEXT))
 
     return new_nodes
 
+
 def text_to_textnodes(text: str) -> list[TextNode]:
-    splitters = {TextType.BOLD: "**", TextType.ITALIC: "_", TextType.CODE: "`", TextType.LINK: "link", TextType.IMAGE: "img"}
+    splitters = {
+        TextType.BOLD: "**",
+        TextType.ITALIC: "_",
+        TextType.CODE: "`",
+        TextType.LINK: "link",
+        TextType.IMAGE: "img",
+    }
     nodes = [TextNode(text, TextType.TEXT)]
     for tt, delimiter in splitters.items():
         if tt == TextType.LINK:
